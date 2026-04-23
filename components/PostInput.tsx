@@ -1,0 +1,87 @@
+'use client'
+
+import { db } from '@/firebase';
+import { closeCommentModal, openLoginModal } from '@/redux/slices/modalSlice';
+import { RootState } from '@/redux/store';
+import { CalendarIcon, ChartBarIcon, FaceSmileIcon, MapPinIcon, PhotoIcon } from '@heroicons/react/24/outline';
+import { addDoc, arrayUnion, collection, doc, serverTimestamp, updateDoc } from 'firebase/firestore';
+import Image from 'next/image';
+import React, { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+
+interface PostInputProps {
+    insideModal?: boolean
+}
+
+const PostInput = ({ insideModal }: PostInputProps) => {
+    const [text, setText] = useState('')
+    const user = useSelector((state: RootState) => state.user)
+    const commentDetails = useSelector((state: RootState) => state.modals.commentPostDetails)
+    const dispatch = useDispatch()
+    async function sendPost() {
+        if (!user.username) {
+            dispatch(openLoginModal())
+            setText('')
+            return
+        }
+        addDoc(collection(db, 'posts'), {
+            text: text,
+            name: user.name,
+            username: user.username,
+            timestamp: serverTimestamp(),
+            likes: [],
+            comments: []
+        })
+        setText('')
+    }
+
+    async function sendComment() {
+        const postRef = doc(db, 'posts', commentDetails.id)
+        await updateDoc(postRef, {
+            comments: arrayUnion({
+                name: user.name,
+                username: user.username,
+                text: text
+            })
+        })
+        setText('')
+        dispatch(closeCommentModal())
+    }
+    return (
+        <div className='flex space-x-5 p-3 border-b border-gray-100 z-0'>
+            <Image
+                src={insideModal ? '/assets 15/profile-pic.png' : '/assets 15/busybee-logo2.png'}
+                width={44}
+                height={44}
+                alt={insideModal ? 'Profile Picture' : 'Logo'}
+                className='w-11 h-11 z-10 bg-white' />
+            <div className='w-full'>
+                <textarea
+                    onChange={(e) => setText(e.target.value)}
+                    value={text}
+                    className='resize-none outline-none w-full
+                min-h-[50px] text-lg'
+                    placeholder={insideModal ? 'Send your reply' : "What's happening!?"} />
+
+                <div className='flex justify-between pt-5 border-t border-gray-100'>
+                    <div className='flex space-x-1.5'>
+                        <PhotoIcon className="w-[22px] h-[22px] text-[#F4AF01]" />
+                        <ChartBarIcon className="w-[22px] h-[22px] text-[#F4AF01]" />
+                        <FaceSmileIcon className="w-[22px] h-[22px] text-[#F4AF01]" />
+                        <CalendarIcon className="w-[22px] h-[22px] text-[#F4AF01]" />
+                        <MapPinIcon className="w-[22px] h-[22px] text-[#F4AF01]" />
+                    </div>
+                    <button
+                        disabled={!text}
+                        onClick={() => insideModal ? sendComment() : sendPost()}
+                        className='bg-[#F4AF01] text-white w-[80px] h-[36px]
+                    rounded-full text-sm cursor-pointer disabled:bg-opacity-60'>
+                        Bumble
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+export default PostInput;
