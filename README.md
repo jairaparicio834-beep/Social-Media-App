@@ -1,5 +1,8 @@
 Busy Bee - Social Media App
 
+<img width="1417" height="697" alt="Screenshot 2026-04-24 at 9 51 44 PM" src="https://github.com/user-attachments/assets/32f05ea6-1c5e-4eee-8e5f-bed142bae175" />
+
+
 Developed a full stack social media app with features like posts, post feeds, likes comments, modals, and authentication using Firebase for database managemnent
 
 ## Install Packages
